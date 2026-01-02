@@ -2,10 +2,68 @@ import streamlit as st
 import pandas as pd
 import io
 
-# Sayfa Genişlik ve Başlık Ayarları
-st.set_page_config(page_title="ShekilHome B2B Portal", layout="wide", page_icon="🏠")
+# 1. APPLE STYLE CONFIGURATION
+st.set_page_config(
+    page_title="AutoSign Management Console",
+    page_icon="💠",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-# 400 İşletmelik Dev Veri Seti (İçerik Hiç Değişmedi)
+# Apple Tasarım CSS'i
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #1d1d1f;
+    }
+    
+    .stApp {
+        background-color: #f5f5f7;
+    }
+    
+    /* Kart Yapısı */
+    .metric-card {
+        background: white;
+        padding: 24px;
+        border-radius: 18px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border: 1px solid #e5e5e7;
+        text-align: center;
+    }
+    
+    /* Buton Özelleştirme */
+    .stButton>button {
+        border-radius: 12px;
+        border: none;
+        background-color: #0071e3;
+        color: white;
+        padding: 10px 24px;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton>button:hover {
+        background-color: #0077ed;
+        transform: scale(1.02);
+    }
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #ffffff;
+        border-right: 1px solid #e5e5e7;
+    }
+    
+    /* Başlıklar */
+    h1 {
+        font-weight: 600 !important;
+        letter-spacing: -0.5px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 2. DATASET (400 Kayıt - İçerik Korundu)
 data = """Kategori;İşletme Adı;Telefon;Web Adresi;Bölge;Tam Adres
 Mobilya;Masko Mobilya Kenti;444 1 675;www.masko.com.tr;İstanbul;Başakşehir
 Mobilya;GARDEN MODERN;(0212) 675 06 54;www.gardenmodern.com.tr;İstanbul;Masko 7A Blok
@@ -371,59 +429,120 @@ Mobilya;Vivense Bodrum;(0252) 319 00 00;www.vivense.com;Muğla;Bodrum
 İç Mimar;Yavuz Mimarlık;(0212) 292 22 20;www.yavuz.com;İstanbul;Galata
 İç Mimar;Zübeyde Mimarlık;(0312) 444 00 33;www.zubeyde.com;Ankara;Çankaya"""
 
-# Veriyi oku
 df = pd.read_csv(io.StringIO(data), sep=';')
 
-# ARAYÜZ (Modern Dark/Blue Theme)
-st.title("🏙️ ShekilHome Pro - 400 İşletme Havuzu")
-st.markdown("---")
-
-# Sidebar: Filtreleme ve Arama
-st.sidebar.header("🔍 Arama Paneli")
-search_term = st.sidebar.text_input("İşletme, Kategori veya Şehir Yazın:")
-category_filter = st.sidebar.multiselect("Kategori Seçin:", df['Kategori'].unique(), default=df['Kategori'].unique())
-
-# Filtreleme İşlemi
-filtered_df = df[
-    (df['Kategori'].isin(category_filter)) &
-    (df['İşletme Adı'].str.contains(search_term, case=False) |
-     df['Bölge'].str.contains(search_term, case=False) |
-     df['Kategori'].str.contains(search_term, case=False))
-]
-
-# Liste Görünümü
-st.subheader(f"📋 Sonuçlar ({len(filtered_df)} kayıt)")
-selected_row_name = st.selectbox("Detayları görmek için bir işletme seçin:", ["Seçiniz..."] + list(filtered_df['İşletme Adı']))
-
-if selected_row_name != "Seçiniz...":
-    row = df[df['İşletme Adı'] == selected_row_name].iloc[0]
+# 3. SIDEBAR - AUTOSIGN CONTROL
+with st.sidebar:
+    st.image("https://img.icons8.com/ios-filled/100/0071e3/square-root.png", width=50) # Temsili AutoSign Logo
+    st.title("AutoSign")
+    st.caption("Central Management Console")
+    st.markdown("---")
     
-    # Detay Kartı
-    with st.expander(f"📌 {row['İşletme Adı']} - Detaylar", expanded=True):
+    # Müşteri Seçimi (SaaS Yapısı)
+    client = st.selectbox("Müşteri Seçin:", ["ShekilHome", "Yeni Müşteri Ekle..."])
+    
+    st.markdown("### 🛠️ Fonksiyonlar")
+    menu = st.radio("Git:", ["Veri Havuzu", "İstatistikler", "Dışa Aktar"])
+    
+    st.markdown("---")
+    st.info("Oturum: Admin v2.1")
+
+# 4. MAIN INTERFACE
+if client == "ShekilHome":
+    
+    if menu == "Veri Havuzu":
+        st.title("🏙️ ShekilHome Veri Yönetimi")
+        st.write("Apple tarzı temiz veri görünümü ve yönetimi.")
+        
+        # Dashboard Özet (Apple Style Metrics)
+        m1, m2, m3 = st.columns(3)
+        with m1:
+            st.markdown(f'<div class="metric-card"><h3>{len(df)}</h3><p>Toplam Kayıt</p></div>', unsafe_allow_html=True)
+        with m2:
+            st.markdown(f'<div class="metric-card"><h3>{len(df[df["Kategori"]=="Mobilya"])}</h3><p>Mobilya Mağazası</p></div>', unsafe_allow_html=True)
+        with m3:
+            st.markdown(f'<div class="metric-card"><h3>{len(df[df["Kategori"]=="İç Mimar"])}</h3><p>İç Mimarlık Ofisi</p></div>', unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Arama ve Filtreleme (Minimalist)
+        c1, c2 = st.columns([2, 1])
+        with c1:
+            search = st.text_input("🔍 İsim, Bölge veya Detay Ara...", placeholder="Örn: Nişantaşı İç Mimar")
+        with c2:
+            cat = st.multiselect("Filtrele:", df['Kategori'].unique(), default=df['Kategori'].unique())
+            
+        # Filtreleme Mantığı
+        f_df = df[
+            (df['Kategori'].isin(cat)) &
+            (df['İşletme Adı'].str.contains(search, case=False) | 
+             df['Bölge'].str.contains(search, case=False))
+        ]
+        
+        # Seçim Kutusu
+        st.markdown("### 📄 İşletme Detay Kartı")
+        selected_name = st.selectbox("İncelemek için bir kayıt seçin:", ["Seçiniz..."] + list(f_df['İşletme Adı']))
+        
+        if selected_name != "Seçiniz...":
+            row = df[df['İşletme Adı'] == selected_name].iloc[0]
+            
+            # Apple Style Detail Card
+            with st.container():
+                st.markdown(f"""
+                <div style="background:white; padding:30px; border-radius:24px; border:1px solid #e5e5e7;">
+                    <h2 style="color:#1d1d1f; margin-bottom:10px;">{row['İşletme Adı']}</h2>
+                    <p style="color:#0071e3; font-weight:600;">{row['Kategori']} | {row['Bölge']}</p>
+                    <hr style="border:0.5px solid #f5f5f7;">
+                    <div style="display: flex; gap: 40px; margin-top:20px;">
+                        <div>
+                            <p style="color:#86868b; font-size:12px; margin-bottom:4px;">TELEFON</p>
+                            <p style="font-weight:500;">{row['Telefon']}</p>
+                        </div>
+                        <div>
+                            <p style="color:#86868b; font-size:12px; margin-bottom:4px;">TAM ADRES</p>
+                            <p style="font-weight:500;">{row['Tam Adres']}</p>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Aksiyon Butonları
+                act1, act2, _ = st.columns([1, 1, 2])
+                with act1:
+                    url = row['Web Adresi']
+                    if not str(url).startswith("http"): url = "https://" + str(url)
+                    st.link_button("🌐 Web Sitesine Git", url, use_container_width=True)
+                with act2:
+                    m_query = f"{row['İşletme Adı']} {row['Tam Adres']}".replace(" ", "+")
+                    st.link_button("📍 Haritada Konum", f"https://www.google.com/maps/search/{m_query}", use_container_width=True)
+
+        # Tablo Görünümü
+        st.markdown("### 📊 Tüm Liste")
+        st.dataframe(f_df, use_container_width=True, hide_index=True)
+
+    elif menu == "İstatistikler":
+        st.title("📈 Veri Analitiği")
+        st.write("ShekilHome portföyünün bölgesel ve kategorik dağılımı.")
+        
         c1, c2 = st.columns(2)
         with c1:
-            st.info(f"**Kategori:** {row['Kategori']}")
-            st.success(f"**Telefon:** {row['Telefon']}")
+            st.markdown("**Bölgesel Yoğunluk (Top 10)**")
+            st.bar_chart(df['Bölge'].value_counts().head(10))
         with c2:
-            st.warning(f"**Bölge:** {row['Bölge']}")
-            st.error(f"**Adres:** {row['Tam Adres']}")
+            st.markdown("**Kategori Dağılımı**")
+            st.write(df['Kategori'].value_counts())
+            
+    elif menu == "Dışa Aktar":
+        st.title("📤 Veriyi Dışa Aktar")
+        st.write("ShekilHome verilerini farklı formatlarda indir.")
         
-        st.markdown("### 🔗 Hızlı Aksiyonlar")
-        btn_c1, btn_c2 = st.columns(2)
-        
-        # Web Linki
-        url = row['Web Adresi']
-        if not str(url).startswith("http"): url = "https://" + str(url)
-        btn_c1.link_button("🌐 Web Sitesini Aç", url, use_container_width=True)
-        
-        # Harita Linki
-        map_query = f"{row['İşletme Adı']} {row['Tam Adres']}".replace(" ", "+")
-        map_url = f"https://www.google.com/maps/search/{map_query}"
-        btn_c2.link_button("📍 Haritada Bul", map_url, use_container_width=True)
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button("Excel/CSV Olarak İndir", data=csv, file_name="shekilhome_database.csv", mime="text/csv")
+        st.success("Veri seti hazır. İndirmek için butona basın.")
 
-# Ana Tablo Görünümü
-st.markdown("---")
-st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+else:
+    st.title("🆕 Yeni Müşteri Ekle")
+    st.info("AutoSign altyapısına yeni bir müşteri eklemek için geliştirme aşamasındadır.")
 
-# Alt Bilgi
-st.caption(f"ShekilHome © 2026 - Toplam {len(df)} kayıt listeleniyor.")
+# Footer
+st.markdown("<br><br><p style='text-align:center; color:#86868b; font-size:12px;'>AutoSign Management System © 2026</p>", unsafe_allow_html=True)
